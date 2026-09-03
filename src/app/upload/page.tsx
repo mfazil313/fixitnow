@@ -8,96 +8,73 @@ import { useLanguage } from '@/context/LanguageContext';
 
 type UploadMode = 'image' | 'video';
 
-// Compress uploaded image client-side to a high-quality ~300KB JPEG File for instant, reliable serverless upload
-function compressImageToFile(file: File, maxDim = 1280, quality = 0.85): Promise<File> {
+// Robust, single-pass client-side image compression with safety timeout
+function compressImageForUpload(file: File): Promise<{ blob: Blob | File; dataUrl: string }> {
   return new Promise((resolve) => {
-    if (!file.type.startsWith('image/')) {
-      resolve(file);
+    // 4s safety timeout: if canvas/image decoding hangs on phone, immediately fallback to raw file
+    const timeout = setTimeout(() => {
+      resolve({ blob: file, dataUrl: '' });
+    }, 4000);
+
+    if (!file || !file.type.startsWith('image/')) {
+      clearTimeout(timeout);
+      resolve({ blob: file, dataUrl: '' });
       return;
     }
+
     const reader = new FileReader();
     reader.onload = (e) => {
       const img = new Image();
       img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-        if (width > maxDim || height > maxDim) {
-          if (width > height) {
-            height = Math.round((height * maxDim) / width);
-            width = maxDim;
-          } else {
-            width = Math.round((width * maxDim) / height);
-            height = maxDim;
+        clearTimeout(timeout);
+        try {
+          const maxDim = 1200;
+          let width = img.width;
+          let height = img.height;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
           }
-        }
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-          canvas.toBlob(
-            (blob) => {
-              if (blob) {
-                const compressedFile = new File([blob], (file.name || 'image').replace(/\.[^/.]+$/, "") + ".jpg", {
-                  type: 'image/jpeg',
-                  lastModified: Date.now()
-                });
-                resolve(compressedFile);
-              } else {
-                resolve(file);
-              }
-            },
-            'image/jpeg',
-            quality
-          );
-        } else {
-          resolve(file);
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+            if (canvas.toBlob) {
+              canvas.toBlob(
+                (blob) => {
+                  resolve({ blob: blob || file, dataUrl });
+                },
+                'image/jpeg',
+                0.85
+              );
+            } else {
+              resolve({ blob: file, dataUrl });
+            }
+          } else {
+            resolve({ blob: file, dataUrl: (e.target?.result as string) || '' });
+          }
+        } catch {
+          resolve({ blob: file, dataUrl: (e.target?.result as string) || '' });
         }
       };
-      img.onerror = () => resolve(file);
+      img.onerror = () => {
+        clearTimeout(timeout);
+        resolve({ blob: file, dataUrl: '' });
+      };
       img.src = (e.target?.result as string) || '';
     };
-    reader.onerror = () => resolve(file);
-    reader.readAsDataURL(file);
-  });
-}
-
-// Compress uploaded image client-side to ~80KB JPEG so it never exceeds browser storage quotas
-function compressImageClientSide(file: File, maxDim = 800, quality = 0.75): Promise<string> {
-  return new Promise((resolve) => {
-    if (!file.type.startsWith('image/')) {
-      resolve('');
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-        if (width > maxDim || height > maxDim) {
-          if (width > height) {
-            height = Math.round((height * maxDim) / width);
-            width = maxDim;
-          } else {
-            width = Math.round((width * maxDim) / height);
-            height = maxDim;
-          }
-        }
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL('image/jpeg', quality));
-        } else {
-          resolve((e.target?.result as string) || '');
-        }
-      };
-      img.onerror = () => resolve((e.target?.result as string) || '');
-      img.src = (e.target?.result as string) || '';
+    reader.onerror = () => {
+      clearTimeout(timeout);
+      resolve({ blob: file, dataUrl: '' });
     };
     reader.readAsDataURL(file);
   });
@@ -210,15 +187,10 @@ export default function UploadPage() {
     setUploadProgress(file.type.startsWith('video/') ? 'Uploading video...' : 'Uploading image...');
 
     try {
-      let fileToSend = file;
-      if (file.type.startsWith('image/')) {
-        try {
-          fileToSend = await compressImageToFile(file);
-        } catch {}
-      }
+      const { blob, dataUrl } = await compressImageForUpload(file);
 
       const formData = new FormData();
-      formData.append('file', fileToSend);
+      formData.append('file', blob, (file.name || 'image.jpg').replace(/\.[^/.]+$/, '') + '.jpg');
       formData.append('selectedModel', selectedModel);
       if (location) {
         formData.append('locationLat', location.lat.toString());
@@ -232,14 +204,6 @@ export default function UploadPage() {
           ? `🤖 ${modelLabel} is watching your video and detecting the problem...`
           : `🤖 ${modelLabel} is analyzing your photo...`
       );
-
-      // Generate a lightweight compressed image URL for instant local display
-      let compressedMediaUrl = '';
-      if (file.type.startsWith('image/')) {
-        try {
-          compressedMediaUrl = await compressImageClientSide(file);
-        } catch {}
-      }
 
       // 35s timeout controller to prevent hanging indefinitely
       const controller = new AbortController();
@@ -272,8 +236,8 @@ export default function UploadPage() {
       if (!res.ok) throw new Error(data.error || 'Upload failed');
 
       // Ensure data.job has a clean, lightweight media_url
-      if (compressedMediaUrl) {
-        data.job.media_url = compressedMediaUrl;
+      if (dataUrl) {
+        data.job.media_url = dataUrl;
       }
 
       // Store job data safely in sessionStorage (clean up old jobs to avoid quota errors)

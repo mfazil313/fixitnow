@@ -24,7 +24,8 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const base64 = buffer.toString('base64');
 
-    const aiResult = await analyzeMediaWithGemini(base64, file.type, selectedModel, file.name);
+    const effectiveMimeType = file.type || (isVideo ? 'video/mp4' : 'image/jpeg');
+    const aiResult = await analyzeMediaWithGemini(base64, effectiveMimeType, selectedModel, file.name || 'photo.jpg');
     const aiModelName = aiResult.ai_model || 'FixItNow Vision AI';
 
     let dbJob = null;
