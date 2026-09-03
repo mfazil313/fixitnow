@@ -330,7 +330,7 @@ export async function analyzeMediaWithGemini(
   fileName?: string
 ): Promise<AIAnalysisResult> {
 
-  const apiKey = process.env.GEMINI_API_KEY || 'AIzaSyBSTZHC4Yot5UramZm8Jy4UTrh4a0db4I8';
+  const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
     console.warn('No GEMINI_API_KEY set — using offline fallback');

@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User message is required' }, { status: 400 });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY || 'AIzaSyBSTZHC4Yot5UramZm8Jy4UTrh4a0db4I8';
+    const apiKey = process.env.GEMINI_API_KEY;
 
     // Build worker context for AI
     let workersContext = 'No specific workers listed nearby.';
