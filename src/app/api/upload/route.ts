@@ -3,6 +3,8 @@ import { analyzeMediaWithGemini } from '@/lib/gemini';
 import { isSupabaseConfigured, mockJobs } from '@/lib/jobStore';
 import { saveLocalJob } from '@/lib/localJobsStore';
 
+export const maxDuration = 60;
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
