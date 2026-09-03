@@ -1,0 +1,44 @@
+ΓÜá Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\Users\mfazi\package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * C:\Users\mfazi\.gemini\antigravity\scratch\fixitnow\package-lock.json
+
+Γû▓ Next.js 16.2.2 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 5.3s
+  Running TypeScript ...
+  Finished TypeScript in 5.5s ...
+  Collecting page data using 7 workers ...
+  Generating static pages using 7 workers (0/15) ...
+  Generating static pages using 7 workers (3/15) 
+  Generating static pages using 7 workers (7/15) 
+  Generating static pages using 7 workers (11/15) 
+Γ£ô Generating static pages using 7 workers (15/15) in 517ms
+  Finalizing page optimization ...
+
+Route (app)
+Γöî Γùï /
+Γö£ Γùï /_not-found
+Γö£ ╞Æ /api/analyze
+Γö£ ╞Æ /api/bookings
+Γö£ ╞Æ /api/upload
+Γö£ ╞Æ /api/workers
+Γö£ ╞Æ /auth/callback
+Γö£ Γùï /auth/login
+Γö£ Γùï /auth/signup
+Γö£ ╞Æ /book/[jobId]
+Γö£ Γùï /dashboard
+Γö£ ╞Æ /results/[jobId]
+Γö£ Γùï /upload
+Γö£ Γùï /worker-dashboard
+Γö£ ╞Æ /worker/[id]
+Γöö Γùï /workers
+
+
+Γùï  (Static)   prerendered as static content
+╞Æ  (Dynamic)  server-rendered on demand
+

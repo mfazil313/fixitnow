@@ -1,0 +1,42 @@
+{
+  "customer@example.com": {
+    "id": "local-user",
+    "email": "customer@example.com",
+    "password": "password",
+    "full_name": "Local User",
+    "role": "customer",
+    "phone": "+91 98765 43210"
+  },
+  "worker@example.com": {
+    "id": "w1",
+    "email": "worker@example.com",
+    "password": "password",
+    "full_name": "Rajesh Kumar",
+    "role": "worker",
+    "phone": "+91 98765 11111"
+  },
+  "mfazil6557@gmail.com": {
+    "id": "local-user",
+    "email": "mfazil6557@gmail.com",
+    "password": "mfazil313@",
+    "full_name": "fazil",
+    "role": "customer",
+    "phone": "7259827565"
+  },
+  "mfazil313@gmail.com": {
+    "id": "w1",
+    "email": "mfazil313@gmail.com",
+    "password": "mfazil313@",
+    "full_name": "fazz",
+    "role": "worker",
+    "phone": "7259827565"
+  },
+  "google.user@example.com": {
+    "id": "google-user",
+    "email": "google.user@example.com",
+    "password": "oauth-login",
+    "full_name": "Google User",
+    "role": "customer",
+    "phone": "+91 98765 00000"
+  }
+}
