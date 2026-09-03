@@ -390,12 +390,11 @@ export default function UploadPage() {
           </button>
         </div>
 
-        {/* Hidden file inputs */}
+        {/* Hidden file inputs (without capture="environment" so mobile allows choosing Gallery or Camera) */}
         <input
           ref={imageInputRef}
           type="file"
           accept="image/*"
-          capture="environment"
           className={styles.fileInput}
           onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])}
         />
@@ -403,7 +402,6 @@ export default function UploadPage() {
           ref={videoInputRef}
           type="file"
           accept="video/*"
-          capture="environment"
           className={styles.fileInput}
           onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])}
         />
