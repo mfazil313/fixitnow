@@ -241,7 +241,25 @@ export default function UploadPage() {
         } catch {}
       }
 
-      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      // 35s timeout controller to prevent hanging indefinitely
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 35000);
+
+      let res: Response;
+      try {
+        res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+          signal: controller.signal
+        });
+      } catch (fErr: any) {
+        if (fErr.name === 'AbortError') {
+          throw new Error('Analysis timed out. Please check your internet connection and try again.');
+        }
+        throw fErr;
+      } finally {
+        clearTimeout(timeoutId);
+      }
 
       // Guard against HTML error pages (Next.js server errors return text/html)
       const contentType = res.headers.get('content-type') || '';
@@ -258,8 +276,11 @@ export default function UploadPage() {
         data.job.media_url = compressedMediaUrl;
       }
 
-      // Store job data safely in sessionStorage with compressed media_url
+      // Store job data safely in sessionStorage (clean up old jobs to avoid quota errors)
       try {
+        Object.keys(sessionStorage).forEach(k => {
+          if (k.startsWith('job-')) sessionStorage.removeItem(k);
+        });
         sessionStorage.setItem(`job-${data.job.id}`, JSON.stringify(data.job));
       } catch (e) {
         console.warn('SessionStorage warning:', e);
@@ -267,8 +288,12 @@ export default function UploadPage() {
 
       setUploadProgress('✅ Analysis complete! Redirecting...');
 
-      // Navigate to results page
-      router.push(`/results/${data.job.id}`);
+      // Immediate navigation across all mobile & desktop browsers
+      if (typeof window !== 'undefined') {
+        window.location.href = `/results/${data.job.id}`;
+      } else {
+        router.push(`/results/${data.job.id}`);
+      }
     } catch (err: any) {
       setError(err.message || 'Something went wrong');
       setUploading(false);

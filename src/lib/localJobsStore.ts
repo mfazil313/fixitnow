@@ -6,9 +6,12 @@
 
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { Job } from '@/lib/types';
 
-const STORE_PATH = path.join(process.cwd(), '.local-jobs.json');
+const STORE_PATH = process.env.VERCEL
+  ? path.join(os.tmpdir(), '.local-jobs.json')
+  : path.join(process.cwd(), '.local-jobs.json');
 
 function readFromDisk(): Map<string, Job> {
   try {
