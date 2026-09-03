@@ -4,6 +4,20 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 
+function getGeminiApiKey(): string {
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const envPath = path.join(process.cwd(), '.env.local');
+    if (fs.existsSync(envPath)) {
+      const text = fs.readFileSync(envPath, 'utf8');
+      const match = text.match(/GEMINI_API_KEY=(.+)/);
+      if (match && match[1].trim()) return match[1].trim();
+    }
+  } catch {}
+  return process.env.GEMINI_API_KEY || '';
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -22,7 +36,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User message is required' }, { status: 400 });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = getGeminiApiKey();
 
     // Build worker context for AI
     let workersContext = 'No specific workers listed nearby.';

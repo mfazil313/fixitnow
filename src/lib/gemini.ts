@@ -323,6 +323,20 @@ Respond with a JSON object structured exactly as follows:
   }
 }`;
 
+function getGeminiApiKey(): string {
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const envPath = path.join(process.cwd(), '.env.local');
+    if (fs.existsSync(envPath)) {
+      const text = fs.readFileSync(envPath, 'utf8');
+      const match = text.match(/GEMINI_API_KEY=(.+)/);
+      if (match && match[1].trim()) return match[1].trim();
+    }
+  } catch {}
+  return process.env.GEMINI_API_KEY || '';
+}
+
 export async function analyzeMediaWithGemini(
   base64Data: string,
   mimeType: string,
@@ -330,7 +344,7 @@ export async function analyzeMediaWithGemini(
   fileName?: string
 ): Promise<AIAnalysisResult> {
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = getGeminiApiKey();
 
   if (!apiKey) {
     console.warn('No GEMINI_API_KEY set — using offline fallback');
